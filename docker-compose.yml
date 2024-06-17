@@ -6,6 +6,22 @@ services:
       - streams:/hls/live
     ports:
       - "1935:1935"
+    depends_on:
+      - stream_auth
+
+  stream_auth:
+    hostname: stream_auth
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    volumes:
+      - streams:/hls/live
+    ports:
+      - "8080:8080"
 
 volumes:
   streams:
+
+networks:
+  default:
+    name: streaming-server
