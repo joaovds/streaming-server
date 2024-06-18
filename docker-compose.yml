@@ -18,6 +18,28 @@ services:
       - streams:/hls/live
     ports:
       - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:16.2
+    hostname: db
+    container_name: bd_streaming-server
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: "root!123"
+      POSTGRES_DB: stream_keys
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./internal/infra/database/scripts/1_init.sql:/docker-entrypoint-initdb.d/1_init.sql
+      - ./interval/infra/database/scripts/2_stream_keys_populate.sql:/docker-entrypoint_initdb.d/2_stream_keys_populate.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 2s
+      timeout: 2s
+      retries: 15
 
 volumes:
   streams:

@@ -3,6 +3,13 @@ WORKDIR /app
 
 COPY . .
 
-RUN go build -o stream-auth ./cmd/auth/main.go
+RUN go build -ldflags="-w -s" -o stream-auth ./cmd/auth/main.go
 
-ENTRYPOINT [ "./stream-auth" ]
+FROM scratch
+WORKDIR /app
+
+COPY --from=builder /app/stream-auth .
+
+CMD [ "./stream-auth" ]
+
+EXPOSE 8080

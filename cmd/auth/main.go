@@ -2,29 +2,29 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"log"
 	"net/http"
+
+	"github.com/joaovds/streaming-server/internal/handler"
+	"github.com/joaovds/streaming-server/internal/infra/database"
 )
 
+func init() {
+}
+
 func main() {
+	db, _ := database.SetupDatabase()
+	defer db.Close()
+
 	mux := http.NewServeMux()
+	authHandler := handler.NewKeyHandler()
 
 	mux.HandleFunc("GET /healthcheck", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("OK"))
 	})
 
-	mux.HandleFunc("POST /auth", func(w http.ResponseWriter, r *http.Request) {
-		body := r.Body
-		defer body.Close()
-
-		data, _ := io.ReadAll(body)
-		fmt.Println("Data: ", string(data))
-
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("OK"))
-	})
+	mux.HandleFunc("POST /auth", authHandler.Auth)
 
 	port := "8080"
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), mux))
